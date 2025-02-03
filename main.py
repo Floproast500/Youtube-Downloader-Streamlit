@@ -8,12 +8,36 @@ from pathlib import Path
 st.title("YouTube Video Downloader")
 st.markdown("Enter the URL of the YouTube video you want to download.")
 
+# Instructions for uploading cookies
+st.write("### Instructions to Upload YouTube Cookies")
+st.markdown("""
+To avoid getting flagged as a bot, you need to upload your YouTube cookies. Here's how you can do it using a browser extension:
+
+1. **Install the "EditThisCookie" browser extension**:
+   - [For Google Chrome](https://chrome.google.com/webstore/detail/editthiscookie)
+   - [For Mozilla Firefox](https://addons.mozilla.org/en-US/firefox/addon/edit-this-cookie/)
+   
+2. **Export Cookies from YouTube**:
+   - Open YouTube in your browser and make sure you're logged in.
+   - Click on the "EditThisCookie" extension icon in your browser.
+   - Click the **Export** button in the extension. This will copy all your cookies to your clipboard in a format that can be saved as a `cookies.txt` file.
+
+3. **Upload the Cookies**:
+   - Copy the cookies content (in the clipboard).
+   - Come back to this page and use the "Upload YouTube Cookies" button below to upload your `cookies.txt` file.
+
+If you need further assistance, please refer to the browser extension documentation or the video tutorials on how to extract cookies.
+""")
+
 # Input for the YouTube video URL
 url = st.text_input("YouTube Video URL", placeholder="https://www.youtube.com/watch?v=example")
 
 # Input for the download destination
 default_destination = str(Path.home() / "Downloads")
 destination = st.text_input("Download Destination", value=default_destination, placeholder="Enter folder path to save the video")
+
+# Input for YouTube Cookies
+cookie_file = st.file_uploader("Upload your YouTube cookies (cookies.txt)", type=["txt"])
 
 if url and destination:
     try:
@@ -56,11 +80,21 @@ if url and destination:
                         self.progress_bar.progress(percentage)
 
             logger = MyLogger()
+
+            # Check if cookie file is uploaded
+            cookie_path = None
+            if cookie_file is not None:
+                # Save the uploaded cookies file temporarily
+                cookie_path = os.path.join(destination, "cookies.txt")
+                with open(cookie_path, "wb") as f:
+                    f.write(cookie_file.read())
+            
             ydl_opts = {
                 'format': 'bestvideo+bestaudio/best',  # Ensures video and audio are downloaded
                 'outtmpl': f'{destination}/%(title)s.%(ext)s',
                 'merge_output_format': 'mp4',  # Merges video and audio into an MP4 file
-                'progress_hooks': [logger.hook]
+                'progress_hooks': [logger.hook],
+                'cookiefile': cookie_path if cookie_path else None  # Use uploaded cookies if provided
             }
 
             with YoutubeDL(ydl_opts) as ydl:
@@ -68,6 +102,11 @@ if url and destination:
                     ydl.download([url])
             st.success(f"Downloaded '{video_title}' successfully! ")
             st.write(f"Saved to the '{destination}' folder.")
+
+            # Clean up cookie file after download
+            if cookie_path and os.path.exists(cookie_path):
+                os.remove(cookie_path)
+
     except Exception as e:
         st.error(f"An error occurred: {e}")
 
