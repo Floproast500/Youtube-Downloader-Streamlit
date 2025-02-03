@@ -15,9 +15,6 @@ url = st.text_input("YouTube Video URL", placeholder="https://www.youtube.com/wa
 default_destination = str(Path.home() / "Downloads")
 destination = st.text_input("Download Destination", value=default_destination, placeholder="Enter folder path to save the video")
 
-# Path to the cookies file (replace with your actual path)
-cookies_path = "/cookies.json"
-
 if url and destination:
     try:
         # Fetch video information
@@ -63,19 +60,19 @@ if url and destination:
                 'format': 'bestvideo+bestaudio/best',  # Ensures video and audio are downloaded
                 'outtmpl': f'{destination}/%(title)s.%(ext)s',
                 'merge_output_format': 'mp4',  # Merges video and audio into an MP4 file
-                'progress_hooks': [logger.hook],
-                'cookies': cookies_path,  # Use cookies to authenticate
-                'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-                'referer': 'https://www.youtube.com/',
-                'no_check_certificate': True  # Disable certificate checking
-
-
+                'progress_hooks': [logger.hook]
             }
 
             with YoutubeDL(ydl_opts) as ydl:
                 with st.spinner("Downloading video and audio..."):
                     ydl.download([url])
-            st.success(f"Downloaded '{video_title}' successfully!")
+            st.success(f"Downloaded '{video_title}' successfully! ")
             st.write(f"Saved to the '{destination}' folder.")
     except Exception as e:
         st.error(f"An error occurred: {e}")
+
+# Specify the correct port for Heroku
+if __name__ == "__main__":
+    import os
+    port = os.getenv("PORT", 8501)
+    st.write(f"Running on port: {port}")
