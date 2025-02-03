@@ -66,7 +66,9 @@ if url and destination:
                 'progress_hooks': [logger.hook],
                 'cookies': cookies_path,  # Use cookies to authenticate
                 'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-                'referer': 'https://www.youtube.com/'
+                'referer': 'https://www.youtube.com/',
+                'no_check_certificate': True  # Disable certificate checking
+
 
             }
 
