@@ -7,7 +7,7 @@ import tempfile
 
 # Streamlit App Setup
 st.title("YouTube Video Downloader")
-st.markdown("In order to bypass bot protection, you must upload your cookies file to this app.")
+st.markdown("In order to bypass bot protection, you must open youtube and upload your cookies file.")
 
 # Instructions for uploading cookies
 st.write("### Instructions to Upload YouTube Cookies")
@@ -97,33 +97,37 @@ if url:
             }
 
             # Temporary download in memory
-            with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as temp_file:
                 temp_file_path = temp_file.name
 
                 with YoutubeDL(ydl_opts) as ydl:
                     with st.spinner("Downloading video and audio..."):
                         ydl.download([url])
 
-                # After download, provide "Save to PC" option
-                st.success(f"Downloaded '{video_title}' successfully!")
-
-                # Read the downloaded file to send it to the client
-                with open(temp_file_path, "rb") as f:
-                    video_data = f.read()
-
-                # Provide download button to the client
-                st.download_button(
-                    label="Download Video",
-                    data=video_data,
-                    file_name=f"{video_title}.mp4",
-                    mime="video/mp4"
-                )
-
-                # Clean up temporary files
-                if cookie_path and os.path.exists(cookie_path):
-                    os.remove(cookie_path)
+                # Check if the file was downloaded successfully
                 if os.path.exists(temp_file_path):
-                    os.remove(temp_file_path)
+                    # After download, provide "Save to PC" option
+                    st.success(f"Downloaded '{video_title}' successfully!")
+
+                    # Provide download button to the client
+                    with open(temp_file_path, "rb") as f:
+                        video_data = f.read()
+
+                    # Provide download button for the user to download the video
+                    st.download_button(
+                        label="Save to PC",
+                        data=video_data,
+                        file_name=f"{video_title}.mp4",
+                        mime="video/mp4"
+                    )
+
+                    # Clean up temporary files
+                    if cookie_path and os.path.exists(cookie_path):
+                        os.remove(cookie_path)
+                    if os.path.exists(temp_file_path):
+                        os.remove(temp_file_path)
+                else:
+                    st.error(f"Failed to download the video: {video_title}")
 
     except Exception as e:
         st.error(f"An error occurred: {e}")
