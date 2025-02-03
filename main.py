@@ -2,8 +2,9 @@ import os
 import streamlit as st
 import yt_dlp as yt_dlp
 from yt_dlp import YoutubeDL
-from pathlib import Path
 import tempfile
+import requests
+from io import BytesIO
 
 # Streamlit App Setup
 st.title("YouTube Video Downloader")
@@ -11,26 +12,7 @@ st.markdown("In order to bypass bot protection, you must open youtube and upload
 
 # Instructions for uploading cookies
 st.write("### Instructions to Upload YouTube Cookies")
-st.markdown("""
-To avoid getting flagged as a bot, you need to upload your YouTube cookies. Here's how you can do it using a browser extension:
-
-1. **Install the "EditThisCookie" browser extension**:
-   - [For Google Chrome](https://chromewebstore.google.com/detail/editthiscookie-v3/ojfebgpkimhlhcblbalbfjblapadhbol?pli=1)
-   - [For Mozilla Firefox](https://addons.mozilla.org/en-US/firefox/addon/etc2/)
-   
-2. **Export Cookies from YouTube**:
-   - Open YouTube in your browser and make sure you're logged in.
-   - Click on the "EditThisCookie" extension icon in your browser.
-   - Click on the wrench icon (settings) and head to the "options" menu.
-   - In the options menu at the bottom, there is a section called "Choose the preferred export format for cookies" - make sure netscape http cookie file is selected.
-   - Click the **Export** button in the extension. This will copy all your cookies to your clipboard in a format that can be saved as a `cookies.txt` file.
-
-3. **Upload the Cookies**:
-   - Copy the cookies content (in the clipboard).
-   - Come back to this page and use the "Upload YouTube Cookies" button below to upload your `cookies.txt` file.
-
-If you need further assistance, please refer to the browser extension documentation or the video tutorials on how to extract cookies.
-""")
+st.markdown("""...""")  # Your instructions text here
 
 # Input for the YouTube video URL
 url = st.text_input("YouTube Video URL", placeholder="https://www.youtube.com/watch?v=example")
@@ -47,6 +29,7 @@ if url:
             video_uploader = info_dict.get('uploader', 'Unknown Uploader')
             video_view_count = info_dict.get('view_count', 'Unknown Views')
             video_duration = info_dict.get('duration', 0)
+            video_thumbnail_url = info_dict.get('thumbnail', None)
 
         # Display video details
         st.write("### Video Details")
@@ -54,6 +37,12 @@ if url:
         st.write(f"**Uploader:** {video_uploader}")
         st.write(f"**Views:** {video_view_count:,}")
         st.write(f"**Length:** {video_duration} seconds")
+
+        # Display video thumbnail
+        if video_thumbnail_url:
+            response = requests.get(video_thumbnail_url)
+            img = BytesIO(response.content)
+            st.image(img, caption=f"Thumbnail of {video_title}", use_column_width=True)
 
         # Download button
         if st.button("Download Video and Audio"):
