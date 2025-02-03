@@ -21,6 +21,8 @@ To avoid getting flagged as a bot, you need to upload your YouTube cookies. Here
 2. **Export Cookies from YouTube**:
    - Open YouTube in your browser and make sure you're logged in.
    - Click on the "EditThisCookie" extension icon in your browser.
+   - Click on the wrench icon (settings) and head to the "options" menu.
+   - In the options menu at the bottom, there is a section called "Choose the preferred export format for cookies" - make sure netscape http cookie file is selected.
    - Click the **Export** button in the extension. This will copy all your cookies to your clipboard in a format that can be saved as a `cookies.txt` file.
 
 3. **Upload the Cookies**:
