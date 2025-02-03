@@ -7,7 +7,7 @@ import tempfile
 
 # Streamlit App Setup
 st.title("YouTube Video Downloader")
-st.markdown("Enter the URL of the YouTube video you want to download.")
+st.markdown("In order to bypass bot protection, you must upload your cookies file to this app.")
 
 # Instructions for uploading cookies
 st.write("### Instructions to Upload YouTube Cookies")
@@ -34,10 +34,6 @@ If you need further assistance, please refer to the browser extension documentat
 
 # Input for the YouTube video URL
 url = st.text_input("YouTube Video URL", placeholder="https://www.youtube.com/watch?v=example")
-
-# Input for the download destination
-default_destination = str(Path.home() / "Downloads")
-destination = st.text_input("Download Destination", value=default_destination, placeholder="Enter folder path to save the video")
 
 # Input for YouTube Cookies
 cookie_file = st.file_uploader("Upload your YouTube cookies (cookies.txt)", type=["txt"])
@@ -108,24 +104,26 @@ if url:
                     with st.spinner("Downloading video and audio..."):
                         ydl.download([url])
 
+                # After download, provide "Save to PC" option
+                st.success(f"Downloaded '{video_title}' successfully!")
+
                 # Read the downloaded file to send it to the client
                 with open(temp_file_path, "rb") as f:
                     video_data = f.read()
 
-                # Clean up temporary files
-                if cookie_path and os.path.exists(cookie_path):
-                    os.remove(cookie_path)
-                if os.path.exists(temp_file_path):
-                    os.remove(temp_file_path)
-
                 # Provide download button to the client
-                st.success(f"Downloaded '{video_title}' successfully!")
                 st.download_button(
                     label="Download Video",
                     data=video_data,
                     file_name=f"{video_title}.mp4",
                     mime="video/mp4"
                 )
+
+                # Clean up temporary files
+                if cookie_path and os.path.exists(cookie_path):
+                    os.remove(cookie_path)
+                if os.path.exists(temp_file_path):
+                    os.remove(temp_file_path)
 
     except Exception as e:
         st.error(f"An error occurred: {e}")
