@@ -64,7 +64,10 @@ if url and destination:
                 'outtmpl': f'{destination}/%(title)s.%(ext)s',
                 'merge_output_format': 'mp4',  # Merges video and audio into an MP4 file
                 'progress_hooks': [logger.hook],
-                'cookies': cookies_path  # Use cookies to authenticate
+                'cookies': cookies_path,  # Use cookies to authenticate
+                'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                'referer': 'https://www.youtube.com/'
+
             }
 
             with YoutubeDL(ydl_opts) as ydl:
