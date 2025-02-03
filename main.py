@@ -7,7 +7,7 @@ import tempfile
 
 # Streamlit App Setup
 st.title("YouTube Video Downloader")
-st.markdown("In order to bypass bot protection, you must open youtube and upload your cookies file.")
+st.markdown("For private use - programmed by Jacob Zammit")
 
 # Instructions for uploading cookies
 st.write("### Instructions to Upload YouTube Cookies")
