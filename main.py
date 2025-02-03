@@ -15,8 +15,8 @@ st.markdown("""
 To avoid getting flagged as a bot, you need to upload your YouTube cookies. Here's how you can do it using a browser extension:
 
 1. **Install the "EditThisCookie" browser extension**:
-   - [For Google Chrome](https://chrome.google.com/webstore/detail/editthiscookie)
-   - [For Mozilla Firefox](https://addons.mozilla.org/en-US/firefox/addon/edit-this-cookie/)
+   - [For Google Chrome](https://chromewebstore.google.com/detail/editthiscookie-v3/ojfebgpkimhlhcblbalbfjblapadhbol?pli=1)
+   - [For Mozilla Firefox](https://addons.mozilla.org/en-US/firefox/addon/etc2/)
    
 2. **Export Cookies from YouTube**:
    - Open YouTube in your browser and make sure you're logged in.
