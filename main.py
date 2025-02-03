@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 import yt_dlp as yt_dlp
 from yt_dlp import YoutubeDL
@@ -65,7 +66,13 @@ if url and destination:
             with YoutubeDL(ydl_opts) as ydl:
                 with st.spinner("Downloading video and audio..."):
                     ydl.download([url])
-            st.success(f"Downloaded '{video_title}' successfully!")
+            st.success(f"Downloaded '{video_title}' successfully! ")
             st.write(f"Saved to the '{destination}' folder.")
     except Exception as e:
         st.error(f"An error occurred: {e}")
+
+# Specify the correct port for Heroku
+if __name__ == "__main__":
+    import os
+    port = os.getenv("PORT", 8501)
+    st.write(f"Running on port: {port}")
