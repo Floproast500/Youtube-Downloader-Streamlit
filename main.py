@@ -98,30 +98,30 @@ if url:
 
             ydl_opts = {
                 'format': 'bestvideo+bestaudio/best',  # Ensures video and audio are downloaded
-                'outtmpl': '%(title)s.%(ext)s',  # Temporary file
+                'outtmpl': '-',  # Don't save file to disk, we will handle it in memory
                 'merge_output_format': 'mp4',  # Merges video and audio into an MP4 file
                 'progress_hooks': [logger.hook],
-                'cookiefile': cookie_path if cookie_path else None  # Use uploaded cookies if provided
+                'cookiefile': cookie_path if cookie_path else None,  # Use uploaded cookies if provided
+                'postprocessors': [{
+                    'key': 'FFmpegVideoConvertor',
+                    'preferedformat': 'mp4',  # Ensure it's in mp4 format
+                }],
+                'noplaylist': True,  # Disable playlist downloads
             }
 
-            # Temporary download in memory
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as temp_file:
-                temp_file_path = temp_file.name
-
+            # Use in-memory file (BytesIO) to hold the video data
+            with BytesIO() as video_buffer:
                 with YoutubeDL(ydl_opts) as ydl:
                     with st.spinner("Downloading video and audio..."):
                         ydl.download([url])
 
-                # Check if the file was downloaded successfully
-                if os.path.exists(temp_file_path):
-                    # After download, provide "Save to PC" option
+                # Once downloaded into memory, send it directly to the user
+                video_data = video_buffer.getvalue()
+
+                if video_data:
                     st.success(f"Downloaded '{video_title}' successfully!")
 
-                    # Provide download button to the client
-                    with open(temp_file_path, "rb") as f:
-                        video_data = f.read()
-
-                    # Provide download button for the user to download the video
+                    # Provide download button for the user to download the video directly
                     st.download_button(
                         label="Save to PC",
                         data=video_data,
@@ -129,11 +129,6 @@ if url:
                         mime="video/mp4"
                     )
 
-                    # Clean up temporary files
-                    if cookie_path and os.path.exists(cookie_path):
-                        os.remove(cookie_path)
-                    if os.path.exists(temp_file_path):
-                        os.remove(temp_file_path)
                 else:
                     st.error(f"Failed to download the video: {video_title}")
 
