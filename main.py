@@ -2,9 +2,8 @@ import os
 import streamlit as st
 import yt_dlp as yt_dlp
 from yt_dlp import YoutubeDL
-import tempfile
-import requests
 from io import BytesIO
+import tempfile
 
 # Streamlit App Setup
 st.title("YouTube Video Downloader")
@@ -48,7 +47,6 @@ if url:
             video_uploader = info_dict.get('uploader', 'Unknown Uploader')
             video_view_count = info_dict.get('view_count', 'Unknown Views')
             video_duration = info_dict.get('duration', 0)
-            video_thumbnail_url = info_dict.get('thumbnail', None)
 
         # Display video details
         st.write("### Video Details")
@@ -56,12 +54,6 @@ if url:
         st.write(f"**Uploader:** {video_uploader}")
         st.write(f"**Views:** {video_view_count:,}")
         st.write(f"**Length:** {video_duration} seconds")
-
-        # Display video thumbnail
-        if video_thumbnail_url:
-            response = requests.get(video_thumbnail_url)
-            img = BytesIO(response.content)
-            st.image(img, caption=f"Thumbnail of {video_title}", use_column_width=True)
 
         # Download button
         if st.button("Download Video and Audio"):
@@ -98,45 +90,37 @@ if url:
 
             ydl_opts = {
                 'format': 'bestvideo+bestaudio/best',  # Ensures video and audio are downloaded
-                'outtmpl': '-',  # Don't save file to disk, we will handle it in memory
+                'outtmpl': '%(title)s.%(ext)s',  # Temporary file
                 'merge_output_format': 'mp4',  # Merges video and audio into an MP4 file
                 'progress_hooks': [logger.hook],
                 'cookiefile': cookie_path if cookie_path else None,  # Use uploaded cookies if provided
-                'postprocessors': [{
-                    'key': 'FFmpegVideoConvertor',
-                    'preferedformat': 'mp4',  # Ensure it's in mp4 format
-                }],
-                'noplaylist': True,  # Disable playlist downloads
+                'noplaylist': True  # Avoid playlist download
             }
 
-            # Use in-memory file (BytesIO) to hold the video data
+            # Create in-memory buffer for the video
             with BytesIO() as video_buffer:
                 with YoutubeDL(ydl_opts) as ydl:
                     with st.spinner("Downloading video and audio..."):
                         ydl.download([url])
 
-                # Once downloaded into memory, send it directly to the user
-                video_data = video_buffer.getvalue()
+                        # The video will be downloaded to the memory buffer instead of a file on disk.
+                        # Read the content into the buffer
+                        with open(f"{video_title}.mp4", "rb") as video_file:
+                            video_buffer.write(video_file.read())
 
-                if video_data:
-                    st.success(f"Downloaded '{video_title}' successfully!")
+                video_buffer.seek(0)  # Go back to the beginning of the buffer
 
-                    # Provide download button for the user to download the video directly
-                    st.download_button(
-                        label="Save to PC",
-                        data=video_data,
-                        file_name=f"{video_title}.mp4",
-                        mime="video/mp4"
-                    )
+                # Provide download button to the client
+                st.download_button(
+                    label="Save to PC",
+                    data=video_buffer,
+                    file_name=f"{video_title}.mp4",
+                    mime="video/mp4"
+                )
 
-                else:
-                    st.error(f"Failed to download the video: {video_title}")
+                # Clean up temporary files
+                if cookie_path and os.path.exists(cookie_path):
+                    os.remove(cookie_path)
 
     except Exception as e:
         st.error(f"An error occurred: {e}")
-
-# Specify the correct port for Heroku
-if __name__ == "__main__":
-    import os
-    port = os.getenv("PORT", 8501)
-    st.write(f"Running on port: {port}")
