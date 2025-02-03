@@ -12,7 +12,26 @@ st.markdown("In order to bypass bot protection, you must open youtube and upload
 
 # Instructions for uploading cookies
 st.write("### Instructions to Upload YouTube Cookies")
-st.markdown("""...""")  # Your instructions text here
+st.markdown("""
+To avoid getting flagged as a bot, you need to upload your YouTube cookies. Here's how you can do it using a browser extension:
+
+1. **Install the "EditThisCookie" browser extension**:
+   - [For Google Chrome](https://chromewebstore.google.com/detail/editthiscookie-v3/ojfebgpkimhlhcblbalbfjblapadhbol?pli=1)
+   - [For Mozilla Firefox](https://addons.mozilla.org/en-US/firefox/addon/etc2/)
+   
+2. **Export Cookies from YouTube**:
+   - Open YouTube in your browser and make sure you're logged in.
+   - Click on the "EditThisCookie" extension icon in your browser.
+   - Click on the wrench icon (settings) and head to the "options" menu.
+   - In the options menu at the bottom, there is a section called "Choose the preferred export format for cookies" - make sure netscape http cookie file is selected.
+   - Click the **Export** button in the extension. This will copy all your cookies to your clipboard in a format that can be saved as a `cookies.txt` file.
+
+3. **Upload the Cookies**:
+   - Copy the cookies content (in the clipboard).
+   - Come back to this page and use the "Upload YouTube Cookies" button below to upload your `cookies.txt` file.
+
+If you need further assistance, please refer to the browser extension documentation or the video tutorials on how to extract cookies.
+""")
 
 # Input for the YouTube video URL
 url = st.text_input("YouTube Video URL", placeholder="https://www.youtube.com/watch?v=example")
