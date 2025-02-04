@@ -5,7 +5,6 @@ import tempfile
 import streamlit as st
 import yt_dlp
 from yt_dlp import YoutubeDL
-from io import BytesIO
 
 # -- Function to sanitise filenames across all platforms --
 def sanitize_filename(name: str) -> str:
@@ -49,7 +48,7 @@ cookie_file = st.file_uploader("Upload your YouTube cookies (cookies.txt)", type
 # -- Main logic --
 if url:
     try:
-        # First, get video info to display details
+        # Get video info to display details
         with YoutubeDL() as ydl:
             info_dict = ydl.extract_info(url, download=False)
             video_title = info_dict.get('title', 'Unknown Title')
@@ -66,13 +65,12 @@ if url:
 
         # Download button
         if st.button("Download Video and Audio"):
-            # Custom logger to track download progress in Streamlit
             class MyLogger:
                 def __init__(self):
                     self.progress_bar = st.progress(0)
 
                 def debug(self, msg):
-                    pass  # We could print debug messages if needed
+                    pass
 
                 def warning(self, msg):
                     st.warning(msg)
@@ -89,7 +87,6 @@ if url:
 
             logger = MyLogger()
 
-            # If the user uploaded cookies, save them to a temp file
             cookie_path = None
             if cookie_file is not None:
                 cookie_path = os.path.join(tempfile.gettempdir(), "cookies.txt")
@@ -97,48 +94,49 @@ if url:
                     f.write(cookie_file.read())
 
             try:
-                # Use a temporary directory for the downloaded/merged file
                 with tempfile.TemporaryDirectory() as tmp_dir:
                     out_path = os.path.join(tmp_dir, "downloaded_video.%(ext)s")
 
                     ydl_opts = {
-                        'format': 'bestvideo+bestaudio/best',  # ensures we get both video & audio
-                        'outtmpl': out_path,                   # writes to our temp dir
-                        'merge_output_format': 'mp4',          # merges into MP4
-                        'progress_hooks': [logger.hook],       # show progress
+                        'format': 'bv*+ba/best',  # Ensure best video & audio selection
+                        'merge_output_format': 'mp4',  # Merge into MP4
+                        'outtmpl': out_path,  # Save to temp directory
+                        'progress_hooks': [logger.hook],  # Show progress
                         'cookiefile': cookie_path if cookie_path else None,
-                        'noplaylist': True
+                        'noplaylist': True,
+                        'postprocessors': [
+                            {'key': 'FFmpegVideoConvertor', 'preferedformat': 'mp4'}
+                        ],
+                        'verbose': True  # Enable logging for debugging
                     }
 
                     with st.spinner("Downloading video and audio..."):
                         with YoutubeDL(ydl_opts) as ydl:
                             ydl.download([url])
 
-                    # The merged file should now be "downloaded_video.mp4" in tmp_dir
                     merged_file = os.path.join(tmp_dir, "downloaded_video.mp4")
+
+                    if not os.path.exists(merged_file):
+                        st.error("Merging failed. Trying manual FFmpeg merge.")
+                        os.system(f'ffmpeg -i "{tmp_dir}/downloaded_video.mp4" -c:v copy -c:a aac "{tmp_dir}/final_video.mp4"')
+                        merged_file = os.path.join(tmp_dir, "final_video.mp4")
+
                     with open(merged_file, "rb") as vf:
                         video_data = vf.read()
 
-                # Sanitise the final download filename
                 safe_title = sanitize_filename(video_title)
-
-                # Provide the download button to the user
                 st.download_button(
                     label="Save to PC",
                     data=video_data,
                     file_name=f"{safe_title}.mp4",
                     mime="video/mp4"
                 )
-
             except Exception as download_error:
                 st.error(f"An error occurred while downloading: {download_error}")
                 st.error(traceback.format_exc())
-
             finally:
-                # Clean up cookies if used
                 if cookie_path and os.path.exists(cookie_path):
                     os.remove(cookie_path)
-
     except Exception as e:
         st.error(f"An error occurred: {e}")
         st.error(traceback.format_exc())
