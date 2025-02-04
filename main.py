@@ -4,6 +4,7 @@ import traceback
 import tempfile
 import streamlit as st
 import yt_dlp
+import shutil
 from yt_dlp import YoutubeDL
 
 # -- Function to sanitise filenames across all platforms --
@@ -13,6 +14,10 @@ def sanitize_filename(name: str) -> str:
     with underscores. This avoids '?' and other special characters.
     """
     return re.sub(r'[^\w\s-]', '_', name)
+
+# -- Function to check if FFmpeg is installed --
+def is_ffmpeg_installed():
+    return shutil.which("ffmpeg") is not None
 
 # -- Streamlit App Setup --
 st.title("YouTube Video Downloader")
@@ -106,7 +111,7 @@ if url:
                         'noplaylist': True,
                         'postprocessors': [
                             {'key': 'FFmpegVideoConvertor', 'preferedformat': 'mp4'}
-                        ],
+                        ] if is_ffmpeg_installed() else [],
                         'verbose': True  # Enable logging for debugging
                     }
 
@@ -117,9 +122,16 @@ if url:
                     merged_file = os.path.join(tmp_dir, "downloaded_video.mp4")
 
                     if not os.path.exists(merged_file):
-                        st.error("Merging failed. Trying manual FFmpeg merge.")
-                        os.system(f'ffmpeg -i "{tmp_dir}/downloaded_video.mp4" -c:v copy -c:a aac "{tmp_dir}/final_video.mp4"')
-                        merged_file = os.path.join(tmp_dir, "final_video.mp4")
+                        if is_ffmpeg_installed():
+                            st.error("Merging failed. Trying manual FFmpeg merge.")
+                            os.system(f'ffmpeg -i "{tmp_dir}/downloaded_video.mp4" -c:v copy -c:a aac "{tmp_dir}/final_video.mp4"')
+                            merged_file = os.path.join(tmp_dir, "final_video.mp4")
+                        else:
+                            st.warning("FFmpeg not found. Falling back to best available format.")
+                            ydl_opts['format'] = 'best'
+                            with YoutubeDL(ydl_opts) as ydl:
+                                ydl.download([url])
+                            merged_file = os.path.join(tmp_dir, "downloaded_video.mp4")
 
                     with open(merged_file, "rb") as vf:
                         video_data = vf.read()
