@@ -15,10 +15,6 @@ def sanitize_filename(name: str) -> str:
     """
     return re.sub(r'[^\w\s-]', '_', name)
 
-# -- Function to check if FFmpeg is installed --
-def is_ffmpeg_installed():
-    return shutil.which("ffmpeg") is not None
-
 # -- Streamlit App Setup --
 st.title("YouTube Video Downloader")
 st.markdown("For private use - programmed by Jacob Zammit")
@@ -103,15 +99,11 @@ if url:
                     out_path = os.path.join(tmp_dir, "downloaded_video.%(ext)s")
 
                     ydl_opts = {
-                        'format': 'bv*+ba/best',  # Ensure best video & audio selection
-                        'merge_output_format': 'mp4',  # Merge into MP4
+                        'format': 'best',  # Always downloads pre-merged video+audio
                         'outtmpl': out_path,  # Save to temp directory
                         'progress_hooks': [logger.hook],  # Show progress
                         'cookiefile': cookie_path if cookie_path else None,
                         'noplaylist': True,
-                        'postprocessors': [
-                            {'key': 'FFmpegVideoConvertor', 'preferedformat': 'mp4'}
-                        ] if is_ffmpeg_installed() else [],
                         'verbose': True  # Enable logging for debugging
                     }
 
@@ -120,18 +112,6 @@ if url:
                             ydl.download([url])
 
                     merged_file = os.path.join(tmp_dir, "downloaded_video.mp4")
-
-                    if not os.path.exists(merged_file):
-                        if is_ffmpeg_installed():
-                            st.error("Merging failed. Trying manual FFmpeg merge.")
-                            os.system(f'ffmpeg -i "{tmp_dir}/downloaded_video.mp4" -c:v copy -c:a aac "{tmp_dir}/final_video.mp4"')
-                            merged_file = os.path.join(tmp_dir, "final_video.mp4")
-                        else:
-                            st.warning("FFmpeg not found. Falling back to best available format.")
-                            ydl_opts['format'] = 'best'
-                            with YoutubeDL(ydl_opts) as ydl:
-                                ydl.download([url])
-                            merged_file = os.path.join(tmp_dir, "downloaded_video.mp4")
 
                     with open(merged_file, "rb") as vf:
                         video_data = vf.read()
