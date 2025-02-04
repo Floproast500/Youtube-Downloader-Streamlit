@@ -99,7 +99,7 @@ if url:
                     out_path = os.path.join(tmp_dir, "downloaded_video.%(ext)s")
 
                     ydl_opts = {
-                        'format': 'best',  # Always downloads pre-merged video+audio
+                        'format': 'bv*[ext=mp4]+ba[ext=m4a]/bestaudio/best',  # Always downloads pre-merged video+audio
                         'outtmpl': out_path,  # Save to temp directory
                         'progress_hooks': [logger.hook],  # Show progress
                         'cookiefile': cookie_path if cookie_path else None,
