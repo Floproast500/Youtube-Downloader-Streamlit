@@ -80,11 +80,19 @@ if url:
                     st.error(msg)
 
                 def hook(self, d):
-                    if d['status'] == 'downloading':
-                        downloaded_bytes = d.get('downloaded_bytes', 0)
-                        total_bytes = d.get('total_bytes', 1)
-                        percentage = int(downloaded_bytes / total_bytes * 100)
-                        self.progress_bar.progress(percentage)
+                    # Only update during 'downloading' status
+                    if d.get('status') == 'downloading':
+                        downloaded = d.get('downloaded_bytes', 0)
+                        # Prefer the real total_bytes, fall back to estimate
+                        total = d.get('total_bytes') or d.get('total_bytes_estimate')
+                        if total:
+                            pct = int(downloaded / total * 100)
+                            # Clamp to [0,100]
+                            pct = max(0, min(pct, 100))
+                            self.progress_bar.progress(pct)
+                        else:
+                            # When total size is unknown, reset or leave at zero
+                            self.progress_bar.progress(0)
 
             logger = MyLogger()
 
